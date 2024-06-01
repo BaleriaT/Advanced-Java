@@ -1,0 +1,133 @@
+import java.util.Scanner;
+import java.util.logging.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.PreparedStatement;
+
+public class Module2 {
+    private static final Logger logger = Logger.getLogger(Module2.class.getName());
+
+    public static void main(String[] args) {
+        // Create a console handler
+        ConsoleHandler handler = new ConsoleHandler();
+        
+        // Create a custom formatter
+        handler.setFormatter(new MyFormatter());
+        
+        // Attach the handler to the logger
+        logger.addHandler(handler);
+        
+        // Set global log level
+        logger.setLevel(Level.INFO);
+        
+        char choice;
+
+        do {
+            logger.info("================================");
+            logger.info("Welcome to the Book Inventory System"); //Welcoming individual to the inventory system
+            logger.info("Please make your selection");
+            logger.info("Enter S to search for products\nEnter G to see all products\nEnter M to modify products\nEnter N to add a new user\nEnter A to add new products\nEnter Q to quit"); //Asking individual to chose from an option
+            logger.info("================================\n\n");
+
+            Scanner kb = new Scanner(System.in);
+            choice = kb.next().charAt(0);
+
+            ProductManager productManager = new ProductManager();
+
+            switch (choice) {
+                case 'S': //Option can either be a Cap letter or a lower case letter
+                case 's':
+                    productManager.searchProduct(); //Calling the method forward
+                    break;
+                case 'G': //Option can either be a Cap letter or a lower case letter
+                case 'g':
+                    productManager.getAllProducts(); //Calling the method forward
+                    break;
+                case 'M': //Option can either be a Cap letter or a lower case letter
+                case 'm':
+                    productManager.modifyProduct(); //Calling the method forward
+                    break;
+                case 'Q': //Option can either be a Cap letter or a lower case letter
+                case 'q':
+                    break;
+                case 'N': //Option can either be a Cap letter or a lower case letter
+                case 'n':
+                    productManager.newUser(); //Calling the method forward
+                    break;
+                case 'A': //Option can either be a Cap letter or a lower case letter
+                case 'a':
+                    productManager.newProduct(); //Calling the method forward
+                    break;
+                default:
+                    logger.info("You entered an invalid input. Please try again."); //If individual entered an invalid option it will display this line
+            }
+        } while (choice != 'Q' && choice != 'q'); //exiting the do loop if the user decides to quit
+
+        logger.info("================================");
+        logger.info("Thank you for using the Book Inventory System"); //Thanking the user for using the inventory system
+        logger.info("================================");
+    }
+}
+
+class ProductManager {
+	
+	private Connection connect = null;
+	private Statement statement = null;
+	private PreparedStatement ps = null;
+	private ResultSet rs = null;
+
+    public void getAllProducts() {
+    	try {
+    		// Method to get all products from the database and print/output data
+            System.out.println("Getting all products from the database...");
+    		connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+    		statement = connect.createStatement();
+    		rs = statement.executeQuery("Select * from products");
+    		
+    		while (rs.next()) {
+    		
+    			String name = rs.getString("name");
+    			float cost = rs.getFloat("cost");
+    			String Author = rs.getString("Author");
+    			System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + Author);
+    		}
+    	}
+    	catch (Exception ex) {
+    		System.out.println("Error: " + ex.getMessage());
+    	}
+        
+       
+        
+    }
+
+    public void searchProduct() {
+        // Method to search for a product by name
+        System.out.println("Starting search for product...");
+    }
+
+    public void newUser() {
+        // Method to add a new user
+        System.out.println("Adding a new user...");
+    }
+
+    public void newProduct() {
+        // Method to add a new product
+        System.out.println("Adding a new product...");
+    }
+
+    public void modifyProduct() {
+        // Method to modify a product
+        System.out.println("Modifying a product...");
+    }
+}
+
+// Custom formatter class
+class MyFormatter extends Formatter {
+    @Override
+    public String format(LogRecord record) {
+        return "[" + record.getLevel() + "] " + record.getMessage() + "\n";
+    }
+}
