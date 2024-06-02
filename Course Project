@@ -104,8 +104,35 @@ class ProductManager {
     }
 
     public void searchProduct() {
-        // Method to search for a product by name
-        System.out.println("Starting search for product...");
+        try {
+	        // Establishing connection to the database
+	        connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+
+	        // Getting user input for product name
+	        Scanner myObj = new Scanner(System.in);
+	        System.out.println("Enter the name of the product to search:");
+	        String productName = myObj.nextLine();
+
+	        // Creating a PreparedStatement for parameterized query
+	        PreparedStatement preparedStatement = connect.prepareStatement("SELECT * FROM products WHERE name LIKE ?");
+	        preparedStatement.setString(1, "%" + productName + "%");
+
+	        // Executing the query
+	        rs = preparedStatement.executeQuery();
+
+	        // Printing the search results
+	        while (rs.next()) {
+	            String name = rs.getString("name");
+	            float cost = rs.getFloat("cost");
+	            String author = rs.getString("Author");
+	            System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + author);
+	        }
+
+	        // Closing the PreparedStatement
+	        preparedStatement.close();
+	    } catch (Exception ex) {
+	        System.out.println("Error: " + ex.getMessage());
+	    }
     }
 
     public void newUser() {
@@ -114,8 +141,41 @@ class ProductManager {
     }
 
     public void newProduct() {
-        // Method to add a new product
-        System.out.println("Adding a new product...");
+        try {
+            // Establishing connection to the database
+            connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+
+            // Creating a PreparedStatement for parameterized query
+            PreparedStatement preparedStatement = connect.prepareStatement("INSERT INTO products (name, cost, Author) VALUES (?, ?, ?)");
+
+            // Getting user input for name, cost, and author
+            Scanner myObj = new Scanner(System.in);
+            System.out.println("Enter name of the book:");
+            String name = myObj.nextLine();
+            System.out.println("Enter cost of the book:");
+            float cost = myObj.nextFloat();
+            myObj.nextLine(); // Consume newline
+            System.out.println("Enter author of the book:");
+            String author = myObj.nextLine();
+
+            // Setting parameters for PreparedStatement
+            preparedStatement.setString(1, name);
+            preparedStatement.setFloat(2, cost);
+            preparedStatement.setString(3, author);
+
+            // Executing the INSERT statement
+            int rowsInserted = preparedStatement.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("A new product was inserted successfully!");
+            } else {
+                System.out.println("Failed to insert the product.");
+            }
+
+            // Closing the PreparedStatement
+            preparedStatement.close();
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
     }
 
     public void modifyProduct() {
