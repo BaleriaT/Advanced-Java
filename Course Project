@@ -1,11 +1,14 @@
-import java.util.Scanner;
-import java.util.logging.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Scanner;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 public class Module2 {
     private static final Logger logger = Logger.getLogger(Module2.class.getName());
@@ -13,23 +16,23 @@ public class Module2 {
     public static void main(String[] args) {
         // Create a console handler
         ConsoleHandler handler = new ConsoleHandler();
-        
+
         // Create a custom formatter
         handler.setFormatter(new MyFormatter());
-        
+
         // Attach the handler to the logger
         logger.addHandler(handler);
-        
+
         // Set global log level
         logger.setLevel(Level.INFO);
-        
+
         char choice;
 
         do {
             logger.info("================================");
             logger.info("Welcome to the Book Inventory System"); //Welcoming individual to the inventory system
             logger.info("Please make your selection");
-            logger.info("Enter S to search for products\nEnter G to see all products\nEnter M to modify products\nEnter N to add a new user\nEnter A to add new products\nEnter Q to quit"); //Asking individual to chose from an option
+            logger.info("Enter S to Search For a Product\nEnter G to See All Products\nEnter M to Modify Product Details\nEnter N to Add a New User\nEnter A to Add a New Product\nEnter R to Request a New Product\nEnter Q to quit"); //Asking individual to chose from an option
             logger.info("================================\n\n");
 
             Scanner kb = new Scanner(System.in);
@@ -61,6 +64,10 @@ public class Module2 {
                 case 'a':
                     productManager.newProduct(); //Calling the method forward
                     break;
+                case 'R': //Option can either be a Cap letter or a lower case letter
+                case 'r':
+                    productManager.requestProduct(); //Calling the method forward
+                    break;
                 default:
                     logger.info("You entered an invalid input. Please try again."); //If individual entered an invalid option it will display this line
             }
@@ -73,71 +80,124 @@ public class Module2 {
 }
 
 class ProductManager {
-	
-	private Connection connect = null;
-	private Statement statement = null;
-	private PreparedStatement ps = null;
-	private ResultSet rs = null;
+
+    private Connection connect = null;
+    private Statement statement = null;
+    private PreparedStatement ps = null;
+    private ResultSet rs = null;
 
     public void getAllProducts() {
-    	try {
-    		// Method to get all products from the database and print/output data
+        try {
+            // Method to get all products from the database and print/output data
             System.out.println("Getting all products from the database...");
-    		connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
-    		statement = connect.createStatement();
-    		rs = statement.executeQuery("Select * from products");
-    		
-    		while (rs.next()) {
-    		
-    			String name = rs.getString("name");
-    			float cost = rs.getFloat("cost");
-    			String Author = rs.getString("Author");
-    			System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + Author);
-    		}
-    	}
-    	catch (Exception ex) {
-    		System.out.println("Error: " + ex.getMessage());
-    	}
-        
-       
-        
+            connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+            statement = connect.createStatement();
+            rs = statement.executeQuery("Select * from products");
+
+            while (rs.next()) {
+
+                String name = rs.getString("name");
+                float cost = rs.getFloat("cost");
+                String Author = rs.getString("Author");
+                System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + Author);
+            }
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
     }
 
     public void searchProduct() {
         try {
-	        // Establishing connection to the database
-	        connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+            // Establishing connection to the database
+            connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
 
-	        // Getting user input for product name
-	        Scanner myObj = new Scanner(System.in);
-	        System.out.println("Enter the name of the product to search:");
-	        String productName = myObj.nextLine();
+            // Getting user input for product name
+            Scanner myObj = new Scanner(System.in);
+            System.out.println("Enter the name of the product to search:");
+            String productName = myObj.nextLine();
 
-	        // Creating a PreparedStatement for parameterized query
-	        PreparedStatement preparedStatement = connect.prepareStatement("SELECT * FROM products WHERE name LIKE ?");
-	        preparedStatement.setString(1, "%" + productName + "%");
+            // Creating a PreparedStatement for parameterized query
+            PreparedStatement preparedStatement = connect.prepareStatement("SELECT * FROM products WHERE name LIKE ?");
+            preparedStatement.setString(1, "%" + productName + "%");
 
-	        // Executing the query
-	        rs = preparedStatement.executeQuery();
+            // Executing the query
+            rs = preparedStatement.executeQuery();
 
-	        // Printing the search results
-	        while (rs.next()) {
-	            String name = rs.getString("name");
-	            float cost = rs.getFloat("cost");
-	            String author = rs.getString("Author");
-	            System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + author);
-	        }
+            // Printing the search results
+            while (rs.next()) {
+                String name = rs.getString("name");
+                float cost = rs.getFloat("cost");
+                String author = rs.getString("Author");
+                System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + author);
+            }
 
-	        // Closing the PreparedStatement
-	        preparedStatement.close();
-	    } catch (Exception ex) {
-	        System.out.println("Error: " + ex.getMessage());
-	    }
+            // Closing the PreparedStatement
+            preparedStatement.close();
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
     }
 
-    public void newUser() {
-        // Method to add a new user
-        System.out.println("Adding a new user...");
+    public void requestProduct() {
+        try {
+            // Establishing connection to the database
+            Connection connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+
+            // Getting user input for the name of the product to request
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter the name of the product you want to request:");
+            String requestedProduct = scanner.nextLine();
+
+            // Creating a PreparedStatement to check if the requested product exists
+            PreparedStatement preparedStatement = connect.prepareStatement("SELECT * FROM products WHERE name = ?");
+            preparedStatement.setString(1, requestedProduct);
+
+            // Executing the query
+            ResultSet rs = preparedStatement.executeQuery();
+
+            // Checking if the requested product exists
+            if (rs.next()) {
+                // Product exists
+                String name = rs.getString("name");
+                float cost = rs.getFloat("cost");
+                String author = rs.getString("Author");
+                System.out.println("Product found in the database:");
+                System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + author);
+            } else {
+                // Product does not exist
+                System.out.println("The requested book is not available in the database. Would you like to request this book? (yes/no)");
+                String choice = scanner.nextLine().trim().toLowerCase();
+                if (choice.equals("yes")) {
+                    // Insert the requested product into the database
+                    PreparedStatement insertStatement = connect.prepareStatement("INSERT INTO products (name, cost, Author) VALUES (?, ?, ?)");
+                    insertStatement.setString(1, requestedProduct);
+                    // For simplicity, let's assume cost and author are also provided by the user
+                    System.out.println("Enter the cost of the product:");
+                    float cost = Float.parseFloat(scanner.nextLine().trim());
+                    insertStatement.setFloat(2, cost);
+                    System.out.println("Enter the author of the product:");
+                    String author = scanner.nextLine().trim();
+                    insertStatement.setString(3, author);
+                    // Execute the INSERT statement
+                    int rowsInserted = insertStatement.executeUpdate();
+                    if (rowsInserted > 0) {
+                        System.out.println("The product has been requested and added to the database successfully.");
+                    } else {
+                        System.out.println("Failed to add the product to the database.");
+                    }
+                    insertStatement.close();
+                } else {
+                    System.out.println("Request canceled. The product has not been added to the database.");
+                }
+            }
+
+            // Closing resources
+            rs.close();
+            preparedStatement.close();
+            connect.close();
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
     }
 
     public void newProduct() {
@@ -179,8 +239,104 @@ class ProductManager {
     }
 
     public void modifyProduct() {
-        // Method to modify a product
-        System.out.println("Modifying a product...");
+        try {
+            // Establishing connection to the database
+            Connection connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+
+            // Getting user input for the name of the product to modify
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter the name of the product you want to modify:");
+            String productName = scanner.nextLine();
+
+            // Creating a PreparedStatement to check if the product exists
+            PreparedStatement preparedStatement = connect.prepareStatement("SELECT * FROM products WHERE name = ?");
+            preparedStatement.setString(1, productName);
+
+            // Executing the query
+            ResultSet rs = preparedStatement.executeQuery();
+
+            // Checking if the product exists
+            if (rs.next()) {
+                // Product exists
+                String name = rs.getString("name");
+                float cost = rs.getFloat("cost");
+                String author = rs.getString("Author");
+                System.out.println("Product found in the database:");
+                System.out.println("Name: " + name + ", Cost: " + cost + ", Author: " + author);
+
+                // Prompting user for new details
+                System.out.println("Enter new name for the product:");
+                String newName = scanner.nextLine();
+                System.out.println("Enter new cost for the product:");
+                float newCost = Float.parseFloat(scanner.nextLine());
+                System.out.println("Enter new author for the product:");
+                String newAuthor = scanner.nextLine();
+
+                // Creating a PreparedStatement to update the product
+                PreparedStatement updateStatement = connect.prepareStatement("UPDATE products SET name = ?, cost = ?, Author = ? WHERE name = ?");
+                updateStatement.setString(1, newName);
+                updateStatement.setFloat(2, newCost);
+                updateStatement.setString(3, newAuthor);
+                updateStatement.setString(4, productName);
+
+                // Executing the update
+                int rowsUpdated = updateStatement.executeUpdate();
+                if (rowsUpdated > 0) {
+                    System.out.println("Product updated successfully!");
+                } else {
+                    System.out.println("Failed to update the product.");
+                }
+
+                // Closing resources
+                updateStatement.close();
+            } else {
+                // Product does not exist
+                System.out.println("The product does not exist in the database.");
+            }
+
+            // Closing resources
+            rs.close();
+            preparedStatement.close();
+            connect.close();
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
+    }
+
+    public void newUser() {
+        try {
+            // Establishing connection to the database
+            Connection connect = DriverManager.getConnection("jdbc:mysql://localhost/books", "root", "Hogwarts1992!");
+
+            // Getting user input for user details
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter the username:");
+            String username = scanner.nextLine();
+            System.out.println("Enter the email:");
+            String email = scanner.nextLine();
+            System.out.println("Enter the password:");
+            String password = scanner.nextLine();
+
+            // Creating a PreparedStatement for the INSERT query
+            PreparedStatement preparedStatement = connect.prepareStatement("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, email);
+            preparedStatement.setString(3, password);
+
+            // Executing the INSERT query
+            int rowsInserted = preparedStatement.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("User added successfully!");
+            } else {
+                System.out.println("Failed to add the user.");
+            }
+
+            // Closing the PreparedStatement and connection
+            preparedStatement.close();
+            connect.close();
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
     }
 }
 
